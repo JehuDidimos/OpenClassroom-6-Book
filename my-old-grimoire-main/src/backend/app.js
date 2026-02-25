@@ -17,6 +17,35 @@ mongoose.connect('mongodb+srv://jehudidimos:JehuD4278@openclass.rgfrmow.mongodb.
     console.error(error)
 })
 
+app.put('/api/books/:id', upload.single("imageUrl") ,async (req, res) => {
+    try{
+        const updatedBook = req.body;
+        const {id} = req.params
+
+        let book = await Book.findOne({id})
+         if(book){
+            book.title = updatedBook.title
+            book.imageUrl = req.file.filename
+            book.author = updatedBook.author
+            book.genre = updatedBook.genre
+            book.year = updatedBook.year
+            await book.save()
+            res.status(200).json({
+                message: "Book has been edited"
+            })
+        } else {
+            res.status(404).json({
+                message: "Book not found"
+            })
+        }
+    } catch(error){
+        console.error(error)
+        res.status(503).json({
+            message: "Internal Server Error"
+        })
+    }
+})
+
 app.get('/api/books/:id', async (req, res) => {
     try{
         const {id} = req.params;
@@ -58,7 +87,7 @@ app.post('/api/books/:id/rating', async (req, res) => {
     }
 })
 
-app.post('/api/books', upload.single("image"), async(req, res, next) => {
+app.post('/api/books', upload.single("imageUrl"), async(req, res, next) => {
 
     const bookId = crypto.randomUUID();
     console.log("TEST")
@@ -67,6 +96,9 @@ app.post('/api/books', upload.single("image"), async(req, res, next) => {
         id: bookId,
         userId: req.body.userId, //Only for testing
         title: req.body.title,
+        author: req.body.author,
+        year: req.body.year,
+        genre: req.body.genre,
         imageUrl: req.file.filename
     });
 
