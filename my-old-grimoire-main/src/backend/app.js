@@ -69,6 +69,11 @@ app.put('/api/books/:id', upload.single("imageUrl") ,async (req, res) => {
     }
 })
 
+app.get('/api/books/bestrating', async (req, res) => {
+    let books = await Book.find().sort({averageRating: -1})
+    res.status(200).json({data: books.slice(0, 3)})
+})
+
 app.get('/api/books/:id', async (req, res) => {
     try{
         const {id} = req.params;
@@ -86,6 +91,7 @@ app.get('/api/books/:id', async (req, res) => {
         res.status(500).json({error: "Server Error"});
     }
 })
+
 
 app.get('/api/books' ,async (req, res) => {
     let books = await Book.find();
@@ -136,7 +142,8 @@ app.post('/api/books', upload.single("imageUrl"), async(req, res, next) => {
         author: req.body.author,
         year: req.body.year,
         genre: req.body.genre,
-        imageUrl: req.file.filename
+        imageUrl: req.file.filename,
+        averageRating: 0
     });
 
     book.save().then(() => {
