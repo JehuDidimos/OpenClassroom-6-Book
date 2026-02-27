@@ -17,6 +17,29 @@ mongoose.connect('mongodb+srv://jehudidimos:JehuD4278@openclass.rgfrmow.mongodb.
     console.error(error)
 })
 
+app.delete('/api/books/:id',async (req, res) => {
+    try{
+        const {id} = req.params
+
+        let book = await Book.findOne({id})
+         if(book){
+            await book.deleteOne()
+            res.status(200).json({
+                message: "Book has been deleted"
+            })
+        } else {
+            res.status(404).json({
+                message: "Book not found"
+            })
+        }
+    } catch(error){
+        console.error(error)
+        res.status(503).json({
+            message: "Internal Server Error"
+        })
+    }
+})
+
 app.put('/api/books/:id', upload.single("imageUrl") ,async (req, res) => {
     try{
         const updatedBook = req.body;
@@ -71,7 +94,6 @@ app.get('/api/books' ,async (req, res) => {
 
 app.post('/api/books/:id/rating', async (req, res) => {
     const {id} = req.params;
-    console.log("TEST")
     console.log(req.body)    
     let book = await Book.findOne({id});
     if(book){
@@ -81,6 +103,21 @@ app.post('/api/books/:id/rating', async (req, res) => {
         };
         book.ratings.push(ratingObj);
         await book.save()
+        const [avg] = await Book.aggregate([
+            {$match: {id}},
+            {$unwind: "$ratings"},
+            {
+                $group: {
+                    _id: "$id",
+                    averageRating: {$avg: "$ratings.grade"}
+                }
+            }
+        ])
+        book.averageRating = avg.averageRating;
+        book.save();
+
+        console.log(avg)
+        
         res.status(200).json({data: book});
     } else {
         res.status(404).json({message: "Book Not Found"})
