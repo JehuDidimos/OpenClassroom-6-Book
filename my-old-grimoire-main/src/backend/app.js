@@ -4,9 +4,13 @@ const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 const Book = require("./models/book");
 const User = require("./models/user");
+const jwt = require("jsonwebtoken");
+const auth = require("./auth")
 
 const app = express();
 app.use(express.json());
+
+//TODO Encrypt Passwords
 
 mongoose
   .connect(
@@ -20,7 +24,35 @@ mongoose
     console.error(error);
   });
 
-app.delete("/api/books/:id", async (req, res) => {
+  app.post("/api/auth/login", async (req, res) => {
+    const {email, password} = req.body;
+    try{
+      const user = await User.findOne({email}).select("+password");
+      if(!user){
+        return res.status(401).json({message: "Email does not exist, create a new account."})
+      }
+      console.log(user)
+      console.log(password)
+      if(user.password !== password){
+        return res.status(401).json({message: "Invalid Login"});
+      }
+      const token = jwt.sign(
+        {userId: user._id, email: user.email},
+        "SECRET",
+        {expiresIn: "24h"}
+      )
+
+      res.status(200).json({
+        message: "Login Successful",
+        token
+      })
+    } catch (error){
+      console.error(error)
+      res.status(500).json({error: error})
+    }
+  })
+
+app.delete("/api/books/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -43,7 +75,7 @@ app.delete("/api/books/:id", async (req, res) => {
   }
 });
 
-app.put("/api/books/:id", upload.single("imageUrl"), async (req, res) => {
+app.put("/api/books/:id", auth, upload.single("imageUrl"), async (req, res) => {
   try {
     const updatedBook = req.body;
     const { id } = req.params;
@@ -100,7 +132,7 @@ app.get("/api/books", async (req, res) => {
   res.status(200).json({ data: books });
 });
 
-app.post("/api/books/:id/rating", async (req, res) => {
+app.post("/api/books/:id/rating", auth,  async (req, res) => {
   const { id } = req.params;
   console.log(req.body);
   let book = await Book.findOne({ id });
@@ -166,7 +198,7 @@ app.post("/api/auth/signup", async (req, res) => {
   }
 });
 
-app.post("/api/books", upload.single("imageUrl"), async (req, res, next) => {
+app.post("/api/books", auth, upload.single("imageUrl"), async (req, res, next) => {
   const bookId = crypto.randomUUID();
   console.log("TEST");
   console.log(req.body);
