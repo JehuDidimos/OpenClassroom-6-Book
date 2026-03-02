@@ -1,7 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+const multer = require("./multer-config");
 const Book = require("./models/book");
 const User = require("./models/user");
 const jwt = require("jsonwebtoken");
@@ -75,7 +74,7 @@ app.delete("/api/books/:id", auth, async (req, res) => {
   }
 });
 
-app.put("/api/books/:id", auth, upload.single("imageUrl"), async (req, res) => {
+app.put("/api/books/:id", auth, multer, async (req, res) => {
   try {
     const updatedBook = req.body;
     const { id } = req.params;
@@ -138,7 +137,7 @@ app.post("/api/books/:id/rating", auth,  async (req, res) => {
   let book = await Book.findOne({ id });
   if (book) {
     let ratingObj = {
-      userId: req.body.userId,
+      userId: req.user.userId,
       grade: req.body.grade,
     };
     book.ratings.push(ratingObj);
@@ -198,18 +197,18 @@ app.post("/api/auth/signup", async (req, res) => {
   }
 });
 
-app.post("/api/books", auth, upload.single("imageUrl"), async (req, res, next) => {
+app.post("/api/books", auth, multer, async (req, res, next) => {
   const bookId = crypto.randomUUID();
-  console.log("TEST");
-  console.log(req.body);
+  const imageUrl = req.protocol + '://' + req.get('host')
+  console.log(req.user)
   const book = new Book({
     id: bookId,
-    userId: req.body.userId, //Only for testing
+    userId: req.user.userId,
     title: req.body.title,
     author: req.body.author,
     year: req.body.year,
     genre: req.body.genre,
-    imageUrl: req.file.filename,
+    imageUrl: imageUrl + '/images/' + req.file.filename,
     averageRating: 0,
   });
 
