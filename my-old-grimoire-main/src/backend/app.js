@@ -4,10 +4,12 @@ const multer = require("./multer-config");
 const Book = require("./models/book");
 const User = require("./models/user");
 const jwt = require("jsonwebtoken");
-const auth = require("./auth")
+const auth = require("./auth");
+const path = require("path")
 
 const app = express();
 app.use(express.json());
+app.use('/images', express.static(path.join(__dirname, 'images')))
 
 //TODO Encrypt Passwords
 
