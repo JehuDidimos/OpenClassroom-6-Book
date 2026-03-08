@@ -6,8 +6,17 @@ const User = require("./models/user");
 const jwt = require("jsonwebtoken");
 const auth = require("./auth");
 const path = require("path");
+const cors = require('cors')
+
 
 const app = express();
+
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}))
+
 app.use(express.json());
 app.use("/images", express.static(path.join(__dirname, "images")));
 
@@ -107,7 +116,7 @@ app.put("/api/books/:id", auth, multer, async (req, res) => {
 
 app.get("/api/books/bestrating", async (req, res) => {
   let books = await Book.find().sort({ averageRating: -1 });
-  res.status(200).json({ data: books.slice(0, 3) });
+  res.status(200).json(books.slice(0, 3));
 });
 
 app.get("/api/books/:id", async (req, res) => {
@@ -130,7 +139,7 @@ app.get("/api/books/:id", async (req, res) => {
 
 app.get("/api/books", async (req, res) => {
   let books = await Book.find();
-  res.status(200).json({ data: books });
+  res.status(200).json(books);
 });
 
 app.post("/api/books/:id/rating", auth, async (req, res) => {

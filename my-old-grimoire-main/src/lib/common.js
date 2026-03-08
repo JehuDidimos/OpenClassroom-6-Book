@@ -41,6 +41,7 @@ export async function getBooks() {
       url: `${API_ROUTES.BOOKS}`,
     });
     // eslint-disable-next-line array-callback-return
+    console.log(response.data);
     const books = formatBooks(response.data);
     return books;
   } catch (err) {
