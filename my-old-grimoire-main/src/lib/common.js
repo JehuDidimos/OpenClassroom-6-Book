@@ -5,7 +5,8 @@ function formatBooks(bookArray) {
   return bookArray.map((book) => {
     const newBook = { ...book };
     // eslint-disable-next-line no-underscore-dangle
-    newBook.id = newBook._id;
+    // newBook.id = newBook._id;
+    console.log(newBook.id);
     return newBook;
   });
 }

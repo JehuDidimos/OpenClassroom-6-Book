@@ -125,8 +125,9 @@ app.get("/api/books/:id", async (req, res) => {
 
     let book = null;
     book = await Book.findOne({ id });
+    console.log(book)
     if (!book) {
-      res.status(404).json({
+      return res.status(404).json({
         error: "Book Not Found",
       });
     }
@@ -221,17 +222,19 @@ app.post("/api/auth/signup", async (req, res) => {
 app.post("/api/books", auth, multer, async (req, res, next) => {
   const bookId = crypto.randomUUID();
   const imageUrl = req.protocol + "://" + req.get("host");
-  console.log(req.user);
+  const jsonReq = JSON.parse(req.body.book);
+  console.log("APP REQ: ", JSON.stringify(jsonReq))
   const book = new Book({
     id: bookId,
     userId: req.user.userId,
-    title: req.body.title,
-    author: req.body.author,
-    year: req.body.year,
-    genre: req.body.genre,
+    title: jsonReq.title,
+    author: jsonReq.author,
+    year: jsonReq.year,
+    genre: jsonReq.genre,
     imageUrl: imageUrl + "/images/" + req.file.filename,
     averageRating: 0,
   });
+  console.log(book)
 
   book
     .save()

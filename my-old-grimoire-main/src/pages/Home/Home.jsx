@@ -10,6 +10,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   // eslint-disable-next-line max-len
   const displayBooks = () => (books ? books.map((book) => <BookItem size={2} book={book} key={book.id} />) : <h1>Vide</h1>);
+  console.log(books);
 
   useEffect(() => {
     async function getBooksList() {
