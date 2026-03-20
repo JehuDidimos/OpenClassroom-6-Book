@@ -153,8 +153,10 @@ app.post("/api/books/:id/rating", auth, async (req, res) => {
     });
     console.log(duplicateUser)
     if (duplicateUser) {
+      //MUST THROW ERROR
       return res.status(200).json({
         message: "User has already rated this book",
+        ratingFlag: false
       });
     } else {
       let ratingObj = {
@@ -178,7 +180,7 @@ app.post("/api/books/:id/rating", auth, async (req, res) => {
 
       console.log(avg);
 
-      res.status(200).json({ data: book });
+      res.status(200).json({ data: book, ratingFlag: true });
     }
   } else {
     res.status(404).json({ message: "Book Not Found" });

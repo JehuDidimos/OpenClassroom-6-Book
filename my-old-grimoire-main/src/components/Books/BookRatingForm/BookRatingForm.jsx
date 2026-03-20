@@ -32,11 +32,13 @@ function BookRatingForm({
     }
     const update = await rateBook(id, userId, rating);
     console.log(update);
-    if (update) {
+    if (update.ratingFlag) {
+      console.log('Returned True');
       // eslint-disable-next-line no-underscore-dangle
       setBook({ ...update, id: update._id });
     } else {
-      alert(update);
+      console.log('Returned False');
+      alert(update.message);
     }
   };
   return (
