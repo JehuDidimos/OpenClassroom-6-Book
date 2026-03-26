@@ -25,6 +25,8 @@ export async function getAuthenticatedUser() {
   try {
     const token = getFromLocalStorage('token');
     const userId = getFromLocalStorage('userId');
+    console.log('USER TOKEN: ', token);
+    console.log('USER ID: ', userId);
     if (!token) {
       return defaultReturnObject;
     }

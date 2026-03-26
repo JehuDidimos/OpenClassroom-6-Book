@@ -55,6 +55,7 @@ app.post("/api/auth/login", async (req, res) => {
     res.status(200).json({
       message: "Login Successful",
       token,
+      userId: user._id
     });
   } catch (error) {
     console.error(error);
@@ -159,33 +160,41 @@ app.post("/api/books/:id/rating", auth, async (req, res) => {
         ratingFlag: false
       });
     } else {
-      let ratingObj = {
-        userId: req.user.userId,
-        grade: req.body.grade,
-      };
-      book.ratings.push(ratingObj);
-      await book.save();
-      const [avg] = await Book.aggregate([
-        { $match: { id } },
-        { $unwind: "$ratings" },
-        {
-          $group: {
-            _id: "$id",
-            averageRating: { $avg: "$ratings.grade" },
-          },
-        },
-      ]);
-      book.averageRating = avg.averageRating;
-      book.save();
-
-      console.log(avg);
-
+ 
+      await addRating(req.user.userId, req.body.grade, book)
+      
       res.status(200).json({ data: book, ratingFlag: true });
     }
   } else {
     res.status(404).json({ message: "Book Not Found" });
   }
 });
+
+async function addRating(userInfo, rating, book){
+  let ratingObject = {
+    userId: userInfo,
+    grade: rating
+  }
+  console.log("ENTERED")
+  let id = book.id
+  book.ratings.push(ratingObject)
+  await book.save()
+
+  const [avg] = await Book.aggregate([
+    {$match: {id}},
+    {$unwind: "$ratings"},
+    {
+      $group: {
+        _id: "$id",
+        averageRating: {$avg: "$ratings.grade"}
+      }
+    }
+  ]);
+
+  book.averageRating = avg.averageRating;
+  book.save();
+  console.log(avg);
+}
 
 app.post("/api/auth/signup", async (req, res) => {
   console.log(req.body);
@@ -225,7 +234,8 @@ app.post("/api/books", auth, multer, async (req, res, next) => {
   const bookId = crypto.randomUUID();
   const imageUrl = req.protocol + "://" + req.get("host");
   const jsonReq = JSON.parse(req.body.book);
-  console.log("APP REQ: ", JSON.stringify(jsonReq))
+  console.log("APP REQ BOOK: ", JSON.stringify(jsonReq))
+  console.log("APP REQ: ", JSON.stringify(req.body))
   const book = new Book({
     id: bookId,
     userId: req.user.userId,
@@ -236,11 +246,11 @@ app.post("/api/books", auth, multer, async (req, res, next) => {
     imageUrl: imageUrl + "/images/" + req.file.filename,
     averageRating: 0,
   });
+  console.log(jsonReq.ratings[0]?.grade)
   console.log(book)
 
-  book
-    .save()
-    .then(() => {
+  await addRating(req.user.userId, jsonReq.ratings[0]?.grade, book).then(() => {
+    console.log("SAVING")
       res.status(201).json({
         message: "Book Saved",
       });

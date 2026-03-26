@@ -33,8 +33,6 @@ function Book() {
   }, [params.id]);
 
   useEffect(() => {
-    console.log(book);
-    console.log(userLoading);
     if (!userLoading && connectedUser && book?.data?.title) {
       const rate = book.data.ratings.find((elt) => elt.userId === connectedUser.userId);
       if (rate) {
