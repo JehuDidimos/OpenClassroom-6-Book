@@ -172,6 +172,7 @@ export async function updateBook(data, id) {
   }
 
   try {
+    console.log(newData);
     const newBook = await axios({
       method: 'put',
       url: `${API_ROUTES.BOOKS}/${id}`,

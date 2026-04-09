@@ -13,7 +13,8 @@ const storage = multer.diskStorage({
     callback(null, "images");
   },
   filename: (req, file, callback) => {
-    console.log("REQ BODY MULTER: ", JSON.stringify(req.body.book));
+    console.log("REQ BODY MULTER: ", JSON.stringify(req.body));
+    console.log("REQ BODY MULTER: ", JSON.stringify(file));
     const name = file.originalname.split(" ").join("_").split('.')[0];
     const extension = MIME_TYPES[file.mimetype] || path.extname(file.originalname).slice(1)
     callback(null, name + Date.now() + "." + extension);

@@ -39,7 +39,7 @@ function UpdateBook() {
           <>
             <h1>Modifier votre livre</h1>
             <p>Vous pouvez modifier tous les champs sauf la note donnée</p>
-            <BookForm book={book} validate={setCreated} />
+            <BookForm book={book?.data} validate={setCreated} />
           </>
         ) : (
           <div className={styles.Created}>

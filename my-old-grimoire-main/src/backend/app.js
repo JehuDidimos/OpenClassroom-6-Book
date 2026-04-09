@@ -6,16 +6,17 @@ const User = require("./models/user");
 const jwt = require("jsonwebtoken");
 const auth = require("./auth");
 const path = require("path");
-const cors = require('cors')
-
+const cors = require("cors");
 
 const app = express();
 
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}))
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 app.use("/images", express.static(path.join(__dirname, "images")));
@@ -55,7 +56,7 @@ app.post("/api/auth/login", async (req, res) => {
     res.status(200).json({
       message: "Login Successful",
       token,
-      userId: user._id
+      userId: user._id,
     });
   } catch (error) {
     console.error(error);
@@ -88,13 +89,17 @@ app.delete("/api/books/:id", auth, async (req, res) => {
 
 app.put("/api/books/:id", auth, multer, async (req, res) => {
   try {
-    const updatedBook = req.body;
+    console.log("UPDATING Book", req.body);
+    const updatedBook = req.body.book ? JSON.parse(req.body.book) : req.body;
+    const imageUrl = req.protocol + "://" + req.get("host");
     const { id } = req.params;
 
     let book = await Book.findOne({ id });
     if (book) {
       book.title = updatedBook.title;
-      book.imageUrl = req.file.filename;
+      if (req.file) {
+        book.imageUrl = imageUrl + "/images/" + req.file.filename;
+      }
       book.author = updatedBook.author;
       book.genre = updatedBook.genre;
       book.year = updatedBook.year;
@@ -126,7 +131,7 @@ app.get("/api/books/:id", async (req, res) => {
 
     let book = null;
     book = await Book.findOne({ id });
-    console.log(book)
+    console.log(book);
     if (!book) {
       return res.status(404).json({
         error: "Book Not Found",
@@ -152,17 +157,16 @@ app.post("/api/books/:id/rating", auth, async (req, res) => {
     const duplicateUser = book.ratings.some((rating) => {
       return rating.userId == req.user.userId;
     });
-    console.log(duplicateUser)
+    console.log(duplicateUser);
     if (duplicateUser) {
       //MUST THROW ERROR
       return res.status(200).json({
         message: "User has already rated this book",
-        ratingFlag: false
+        ratingFlag: false,
       });
     } else {
- 
-      await addRating(req.user.userId, req.body.grade, book)
-      
+      await addRating(req.user.userId, req.body.grade, book);
+
       res.status(200).json({ data: book, ratingFlag: true });
     }
   } else {
@@ -170,25 +174,25 @@ app.post("/api/books/:id/rating", auth, async (req, res) => {
   }
 });
 
-async function addRating(userInfo, rating, book){
+async function addRating(userInfo, rating, book) {
   let ratingObject = {
     userId: userInfo,
-    grade: rating
-  }
-  console.log("ENTERED")
-  let id = book.id
-  book.ratings.push(ratingObject)
-  await book.save()
+    grade: rating,
+  };
+  console.log("ENTERED");
+  let id = book.id;
+  book.ratings.push(ratingObject);
+  await book.save();
 
   const [avg] = await Book.aggregate([
-    {$match: {id}},
-    {$unwind: "$ratings"},
+    { $match: { id } },
+    { $unwind: "$ratings" },
     {
       $group: {
         _id: "$id",
-        averageRating: {$avg: "$ratings.grade"}
-      }
-    }
+        averageRating: { $avg: "$ratings.grade" },
+      },
+    },
   ]);
 
   book.averageRating = avg.averageRating;
@@ -234,8 +238,8 @@ app.post("/api/books", auth, multer, async (req, res, next) => {
   const bookId = crypto.randomUUID();
   const imageUrl = req.protocol + "://" + req.get("host");
   const jsonReq = JSON.parse(req.body.book);
-  console.log("APP REQ BOOK: ", JSON.stringify(jsonReq))
-  console.log("APP REQ: ", JSON.stringify(req.body))
+  console.log("APP REQ BOOK: ", JSON.stringify(jsonReq));
+  console.log("APP REQ: ", JSON.stringify(req.body));
   const book = new Book({
     id: bookId,
     userId: req.user.userId,
@@ -246,11 +250,12 @@ app.post("/api/books", auth, multer, async (req, res, next) => {
     imageUrl: imageUrl + "/images/" + req.file.filename,
     averageRating: 0,
   });
-  console.log(jsonReq.ratings[0]?.grade)
-  console.log(book)
+  console.log(jsonReq.ratings[0]?.grade);
+  console.log(book);
 
-  await addRating(req.user.userId, jsonReq.ratings[0]?.grade, book).then(() => {
-    console.log("SAVING")
+  await addRating(req.user.userId, jsonReq.ratings[0]?.grade, book)
+    .then(() => {
+      console.log("SAVING");
       res.status(201).json({
         message: "Book Saved",
       });
