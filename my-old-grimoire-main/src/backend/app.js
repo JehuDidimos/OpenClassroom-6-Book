@@ -205,7 +205,7 @@ app.post("/api/auth/signup", async (req, res) => {
   const email = req.body.email;
   let user = await User.findOne({ email });
   if (user) {
-    res.status(200).json({
+    res.status(400).json({
       message: "User already exists",
     });
   } else {
