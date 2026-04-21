@@ -40,8 +40,8 @@ function SignIn({ setUser }) {
       }
     } catch (err) {
       console.log(err);
-      setNotification({ error: true, message: err.message });
-      console.log('Some error occured during signing in: ', err);
+      setNotification({ error: true, message: err?.response?.data?.message });
+      console.log('Some error occured during signing up: ', err?.response?.data?.message);
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +64,8 @@ function SignIn({ setUser }) {
       }
       setNotification({ error: false, message: 'Votre compte a bien été créé, vous pouvez vous connecter' });
     } catch (err) {
-      setNotification({ error: true, message: err.message });
-      console.log('Some error occured during signing up: ', err);
+      setNotification({ error: true, message: err?.response?.data?.message });
+      console.log('Some error occured during signing up: ', err?.response?.data?.message);
     } finally {
       setIsLoading(false);
     }
